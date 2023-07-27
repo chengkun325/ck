@@ -1,0 +1,222 @@
+<template>
+    <div>
+        <div class="block">
+            <span class="demonstration"></span>
+            <el-carousel height="300px" type="card">
+                <el-carousel-item>
+                    <h3>
+                        <img src="../assets/images/GF2-1.jpg"/>
+                    </h3>
+                </el-carousel-item>
+                <el-carousel-item>
+                    <h3>
+                        <img src="../assets/images/GF2-2.jpg"/>
+                    </h3>
+                </el-carousel-item>
+                <el-carousel-item>
+                    <h3>
+                        <img src="../assets/images/GF2-3.jpg"/>
+                    </h3>
+                </el-carousel-item>
+                <el-carousel-item>
+                    <h3>
+                        <img src="../assets/images/GF2-4.jpg"/>
+                    </h3>
+                </el-carousel-item>
+            </el-carousel>
+        </div>
+    </div>
+    <el-button type="success" @click="handleAdd">新增</el-button>
+    <el-button type="danger">删除</el-button>
+    <el-table :data="filterTableData" :key="itemKey">
+        <el-table-column type="selection" width="55"/>
+        <el-table-column label="案例号" align="center" prop="caseId"/>
+        <el-table-column label="分类" align="center" prop="groupId"/>
+        <el-table-column label="价格" align="center" prop="price"/>
+        <el-table-column label="案例拇指图" align="center" prop="img">
+            <template #default="scope">
+                <el-image :src="scope.row.img"></el-image>
+            </template>
+        </el-table-column>
+        <el-table-column label="拍摄时间" align="center" prop="produceDate"/>
+        <el-table-column label="地域" align="center" prop="area"/>
+        <el-table-column label="部门" align="center" prop="department"/>
+        <el-table-column label="数据名称" align="center" prop="dataName"/>
+        <el-table-column label="描述" align="center" prop="remark"/>
+        <el-table-column label="操作" align="center" width="200%">
+            <template #header>
+                <el-input v-model="search" size="small" placeholder="Type to search"/>
+            </template>
+            <template #default="scope">
+                <el-button
+                        type="success"
+                        @click="handleBuy(scope.$index, scope.row)"
+                >订购
+                </el-button>
+                <el-button
+                        @click="handleEdit(scope.$index, scope.row)"
+                        type="danger"
+                >修改
+                </el-button>
+            </template>
+        </el-table-column>
+
+    </el-table>
+
+    <el-drawer v-model="drawer" title="I am the title" :with-header="false">
+        <el-form :model="form">
+            <el-form-item label="案例价格">
+                <el-input v-model="form.price" placeholder="请输入案例价格"/>
+            </el-form-item>
+            <el-form-item label="图片地址">
+                <el-input v-model="form.img" placeholder="请输入图片地址"/>
+            </el-form-item>
+            <el-form-item label="数据名称">
+                <el-input v-model="form.dataName" placeholder="请输入数据名称"/>
+            </el-form-item>
+            <el-form-item label="拍摄时间">
+                <el-input v-model="form.produceDate" placeholder="请输入拍摄时间"/>
+            </el-form-item>
+            <el-form-item label="地域">
+                <el-input v-model="form.area" placeholder="请输入地域"/>
+            </el-form-item>
+            <el-form-item label="备注信息">
+                <el-input v-model="form.remark" placeholder="请输入备注信息"/>
+            </el-form-item>
+            <el-form-item label="部门">
+                <el-input v-model="form.department" placeholder="请输入部门"/>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary">确定</el-button>
+                <el-button type="danger">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-drawer>
+
+    <el-dialog v-model="show">
+        <el-form :model="form">
+            <el-form-item label="案例价格">
+                <el-input v-model="form.price" placeholder="请输入案例价格"/>
+            </el-form-item>
+            <el-form-item label="图片地址">
+                <el-input v-model="form.img" placeholder="请输入图片地址"/>
+            </el-form-item>
+            <el-form-item label="数据名称">
+                <el-input v-model="form.dataName" placeholder="请输入数据名称"/>
+            </el-form-item>
+            <el-form-item label="拍摄时间">
+                <el-input v-model="form.produceDate" placeholder="请输入拍摄时间"/>
+            </el-form-item>
+            <el-form-item label="地域">
+                <el-input v-model="form.area" placeholder="请输入地域"/>
+            </el-form-item>
+            <el-form-item label="备注信息">
+                <el-input v-model="form.remark" placeholder="请输入备注信息"/>
+            </el-form-item>
+            <el-form-item label="部门">
+                <el-input v-model="form.department" placeholder="请输入部门"/>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary">确定</el-button>
+                <el-button type="danger">取消</el-button>
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+
+    <el-dialog
+            v-model="buyDialog"
+            title="确定订购？">
+        <template #footer>
+      <span class="dialog-footer">
+        <el-button type="danger" @click="buyDialog = false">取消</el-button>
+        <el-button type="success" @click="buyDialog = false">
+          确认
+        </el-button>
+      </span>
+        </template>
+    </el-dialog>
+</template>
+
+<script lang="ts" setup>
+import {computed, reactive, ref} from "vue";
+
+import service from "../utils/http.ts";
+
+const search = ref('')
+let itemKey = ref<boolean>();
+const drawer = ref(false)
+
+const filterTableData = computed(() =>
+    caseList.filter(
+        (data) =>
+            !search.value ||
+            data.area.toLowerCase().includes(search.value.toLowerCase())
+    )
+)
+
+let caseList = reactive([
+    {
+        caseId: '',
+        groupId: '',
+        price: '',
+        img: "",
+        produceDate: '',
+        area: '',
+        department: '',
+        dataName: '',
+        remark: '',
+    },
+])
+
+let form = ref({
+    price: '',
+    img: "",
+    produceDate: '',
+    area: '',
+    department: '',
+    dataName: '',
+    remark: '',
+})
+
+let orderTemp = ref(
+    {
+        nickName: '',
+        orderDate: '',
+        dataName:''
+    }
+)
+let show = ref(false)
+const buyDialog = ref(false)
+let handleList = () => {
+    service.get('/case/list').then(res => {
+        itemKey.value = !itemKey.value;
+        caseList = res.data
+    })
+}
+handleList();
+let handleEdit = (index, row) => {
+    drawer.value = true
+    form.value = row
+
+}
+let handleBuy = (index, row) => {
+    console.log(index,row.dataName)
+    orderTemp.value.dataName = row.dataName
+    orderTemp.value.orderDate = Date.now().toString()
+    orderTemp.value.nickName = "user_pe62965ed2"
+    buyDialog.value = true
+    service.post('/orders',orderTemp.value).then(res => {
+
+    })
+}
+
+let handleAdd = () => {
+    show.value = true
+}
+</script>
+
+<style>
+.block {
+    margin-bottom: 10px;
+}
+</style>

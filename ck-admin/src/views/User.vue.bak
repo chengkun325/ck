@@ -1,0 +1,60 @@
+<template>
+    <el-tree :data="data" :props="defaultProps" show-checkbox default-expand-all/>
+</template>
+
+<script lang="ts" setup>
+const defaultProps = {
+    children: 'children',
+    label: 'label',
+    disabled: 'disabled',
+}
+
+const data = [
+    {
+        id: 1,
+        label: '遥感案例管理系统',
+        children: [
+            {
+              id:1,
+              label: '系统管理员'
+            },
+            {
+                id: 2,
+                label: '采购部',
+                children: [
+                    {
+                        id: 3,
+                        label: '张三',
+                        disabled: true
+                    },
+                    {
+                        id: 4,
+                        label: '李四',
+                        disabled: true,
+                    },
+                ],
+            },
+            {
+                id: 2,
+                label: '审核部',
+                children: [
+                    {
+                        id: 3,
+                        label: '假小龙',
+                        disabled: true,
+                    },
+                    {
+                        id: 4,
+                        label: '真小龙',
+                        disabled: true,
+                    },
+                ],
+            }
+        ],
+    },
+]
+</script>
+
+<style scoped>
+
+</style>

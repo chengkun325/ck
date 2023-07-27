@@ -1,0 +1,101 @@
+<template>
+  <el-table :data="orderList">
+    <el-table-column label="订单号" prop="orderId"></el-table-column>
+    <el-table-column label="用户名" prop="nickName"></el-table-column>
+    <el-table-column label="订单时间" prop="orderDate"></el-table-column>
+    <el-table-column label="案例名称" prop="dataName"></el-table-column>
+    <el-table-column label="操作">
+      <template #default="scope">
+        <el-button type="primary" size="small" @click="handleCheck">查看</el-button>
+        <el-button type="danger" size="small" @click="handleDelete(scope.$index,scope.row)">删除</el-button>
+      </template>
+
+    </el-table-column>
+  </el-table>
+
+  <el-drawer v-model="drawer" title="审核进度" :with-header="true">
+    <el-timeline>
+      <el-timeline-item
+          v-for="(activity, index) in activities"
+          :key="index"
+          :icon="activity.icon"
+          :type="activity.type"
+          :color="activity.color"
+          :size="activity.size"
+          :hollow="activity.hollow"
+          :timestamp="activity.timestamp"
+      >
+        {{ activity.content }}
+      </el-timeline-item>
+    </el-timeline>
+  </el-drawer>
+</template>
+
+<script lang="ts" setup>
+import {MoreFilled} from '@element-plus/icons-vue'
+import {ref} from "vue";
+import service from "../utils/http.ts";
+import axios from "axios";
+
+const drawer = ref(false)
+const orderList = ref([{
+  orderId: '',
+  nickName: '',
+  orderDate: '',
+  dataName: ''
+}])
+
+const handleCheck = () => {
+  drawer.value = true;
+}
+
+const handleList = () => {
+  service.get("/orders").then(res => {
+    orderList.value = res.data.data
+  })
+}
+
+const handleDelete = (index, row) => {
+  service.delete('/orders', {
+    params: {
+      orderId: row.orderId
+    }
+  }).then(res => {
+    handleList();
+  })
+}
+handleList()
+const activities = [
+  {
+    content: '用户下单',
+    timestamp: '2019-04-12 20:46',
+    size: 'large',
+    type: 'primary',
+    icon: MoreFilled,
+  },
+  {
+    content: '用户身份核验',
+    timestamp: '2019-04-13 20:46',
+    color: '#0bbd87',
+  },
+  {
+    content: '打包案例文件',
+    timestamp: '2019-04-13 20:46',
+    size: 'large',
+  },
+  {
+    content: '开放用户下载',
+    timestamp: '2019-04-13 20:46',
+    type: 'primary',
+    hollow: true,
+  },
+  {
+    content: '流程结束',
+    timestamp: '2019-04-13 20:46',
+  },
+]
+</script>
+
+<style scoped>
+
+</style>
